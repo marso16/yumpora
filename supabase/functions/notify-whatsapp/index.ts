@@ -8,30 +8,12 @@ serve(async (req) => {
   const apiKey = Deno.env.get("CALLMEBOT_API_KEY");
 
   const message = `
-🛍️ *NEW ORDER RECEIVED*
-
+🛍️ *NEW ORDER* | 🆔 ${order.id}
 ━━━━━━━━━━━━━━
-🆔 *Order ID:*
-${order.id}
-
-👤 *Customer:*
-${order.customer_name}
-
-📞 *Phone:*
-${order.customer_phone}
-
-📍 *Address:*
-${order.delivery_address}, ${order.city}
-
-💳 *Payment:*
-${order.payment_method}
-
-💰 *Total:*
-$${order.total_amount}
-
-📝 *Notes:*
-${order.notes || "No notes"}
-
+👤 ${order.customer_name} | 📞 ${order.customer_phone}
+📍 ${order.delivery_address}, ${order.city}
+💳 ${order.payment_method} | 💰 *$${order.total_amount}*
+📝 ${order.notes || "No notes"}
 ━━━━━━━━━━━━━━
 🚀 Please process this order.
   `.trim();
