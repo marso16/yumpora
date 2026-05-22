@@ -19,7 +19,7 @@ export default function AdminLayout() {
       data: { session },
     } = await supabase.auth.getSession();
     if (!session) {
-      navigate("/admin/login");
+      navigate("/auth");
       return;
     }
 
@@ -30,7 +30,7 @@ export default function AdminLayout() {
       .single();
 
     if (!profile?.is_admin) {
-      navigate("/admin/login");
+      navigate("/auth");
       return;
     }
     setAdminName(profile.full_name || session.user.email);
@@ -41,7 +41,7 @@ export default function AdminLayout() {
     toast.success("Signed out", {
       style: { fontFamily: "Nunito, sans-serif", fontWeight: 700 },
     });
-    navigate("/admin/login");
+    navigate("/auth");
   }
 
   const navItems = [

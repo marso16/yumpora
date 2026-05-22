@@ -4,7 +4,6 @@ import {
   Package,
   ChevronDown,
   ChevronUp,
-  ShoppingBag,
   Clock,
   CheckCircle,
   XCircle,
@@ -12,6 +11,7 @@ import {
 } from "lucide-react";
 import api from "../lib/axios";
 import useAuthStore from "../store/authStore";
+import RewardBanner from "../components/RewardBanner";
 
 const STATUS_CONFIG = {
   pending: {
@@ -425,6 +425,9 @@ export default function Orders() {
       <div
         style={{ maxWidth: "800px", margin: "0 auto", padding: "2rem 1.5rem" }}
       >
+        {/* Reward Banner — add here */}
+        {profile && <RewardBanner profile={profile} />}
+
         {/* Filter tabs */}
         {orders.length > 0 && (
           <div
@@ -473,7 +476,6 @@ export default function Orders() {
             })}
           </div>
         )}
-
         {/* Orders list */}
         {loading ? (
           <div

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   ShoppingBag,
   MapPin,
@@ -8,20 +8,24 @@ import {
   Mail,
   Truck,
   CheckCircle,
+  Gift,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import api from "../lib/axios";
 import useCartStore from "../store/cartStore";
 import useAuthStore from "../store/authStore";
+import RewardBanner from "../components/RewardBanner";
+import { getTierInfo } from "../lib/rewards";
 
 export default function Checkout() {
-  const navigate = useNavigate();
   const { items, getTotalPrice, clearCart } = useCartStore();
-  const { user, profile } = useAuthStore();
+  const { user, profile, refreshProfile } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderId, setOrderId] = useState(null);
   const [finalTotal, setFinalTotal] = useState(0);
+  const [rewardApplied, setRewardApplied] = useState(false);
+  const [rewardAmount, setRewardAmount] = useState(0);
 
   const [form, setForm] = useState({
     full_name: profile?.full_name || user?.user_metadata?.full_name || "",
@@ -32,8 +36,39 @@ export default function Checkout() {
     notes: "",
   });
 
+  const rewardInfo =
+    user && profile
+      ? getTierInfo(
+          profile.completed_orders || 0,
+          profile.total_tiers_claimed || 0,
+        )
+      : null;
+
+  const subtotal = getTotalPrice();
+  const totalAfterDiscount = Math.max(0, subtotal - rewardAmount);
+
   function handleChange(e) {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+  }
+
+  function handleClaimReward() {
+    if (!rewardInfo?.hasReward) return;
+    if (rewardApplied) {
+      setRewardApplied(false);
+      setRewardAmount(0);
+      toast("Reward removed", {
+        style: { fontFamily: "Nunito, sans-serif", fontWeight: 700 },
+      });
+    } else {
+      setRewardApplied(true);
+      setRewardAmount(rewardInfo.nextRewardAmount);
+      toast.success(
+        `$${rewardInfo.nextRewardAmount.toFixed(2)} reward applied! 🎉`,
+        {
+          style: { fontFamily: "Nunito, sans-serif", fontWeight: 700 },
+        },
+      );
+    }
   }
 
   async function handleSubmit(e) {
@@ -45,8 +80,7 @@ export default function Checkout() {
     setLoading(true);
 
     try {
-      const total = getTotalPrice();
-      setFinalTotal(total);
+      setFinalTotal(totalAfterDiscount);
 
       const orderRes = await api.post(
         "/rest/v1/orders",
@@ -59,7 +93,10 @@ export default function Checkout() {
           notes: form.notes,
           payment_method: "cash_on_delivery",
           status: "pending",
-          total_amount: total,
+          total_amount: totalAfterDiscount,
+          discount_amount: rewardAmount,
+          reward_applied: rewardApplied,
+          reward_amount: rewardAmount,
           user_id: user?.id || null,
         },
         { headers: { Prefer: "return=representation" } },
@@ -67,22 +104,27 @@ export default function Checkout() {
 
       const order = orderRes.data[0];
 
-      const orderItems = items.map((item) => ({
-        order_id: order.id,
-        product_id: item.id,
-        product_name: item.name,
-        product_price: item.price,
-        quantity: item.quantity,
-        subtotal: item.price * item.quantity,
-      }));
-
-      await api.post("/rest/v1/order_items", orderItems);
+      await api.post(
+        "/rest/v1/order_items",
+        items.map((item) => ({
+          order_id: order.id,
+          product_id: item.id,
+          product_name: item.name,
+          product_price: item.price,
+          quantity: item.quantity,
+          subtotal: item.price * item.quantity,
+        })),
+      );
 
       if (user) {
-        const pointsEarned = Math.floor(total);
+        const newTiersClaimed = rewardApplied
+          ? (profile.total_tiers_claimed || 0) + 1
+          : profile.total_tiers_claimed || 0;
+
         await api.patch(`/rest/v1/profiles?id=eq.${user.id}`, {
-          loyalty_points: (profile?.loyalty_points || 0) + pointsEarned,
+          total_tiers_claimed: newTiersClaimed,
         });
+        await refreshProfile(user.id);
       }
 
       setOrderId(order.id);
@@ -121,7 +163,7 @@ export default function Checkout() {
     pointerEvents: "none",
   };
 
-  // ORDER SUCCESS SCREEN
+  // SUCCESS SCREEN
   if (orderPlaced) {
     return (
       <div
@@ -180,7 +222,7 @@ export default function Checkout() {
           >
             Your exotic snacks are on their way! We'll contact you on{" "}
             <strong style={{ color: "#2C1810" }}>{form.phone}</strong> to
-            confirm your order.
+            confirm.
           </p>
 
           {/* Order ID */}
@@ -215,6 +257,33 @@ export default function Checkout() {
             </p>
           </div>
 
+          {/* Reward used */}
+          {rewardApplied && (
+            <div
+              style={{
+                backgroundColor: "#FFFBEB",
+                border: "1.5px solid #FDE68A",
+                borderRadius: "12px",
+                padding: "0.75rem 1rem",
+                marginBottom: "1rem",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+              }}
+            >
+              <Gift size={18} style={{ color: "#FFB800" }} />
+              <p
+                style={{
+                  fontSize: "0.85rem",
+                  fontWeight: 700,
+                  color: "#2C1810",
+                }}
+              >
+                Tier reward applied — ${rewardAmount.toFixed(2)} off!
+              </p>
+            </div>
+          )}
+
           {/* COD reminder */}
           <div
             style={{
@@ -222,7 +291,7 @@ export default function Checkout() {
               border: "1.5px solid #C6F6D5",
               borderRadius: "12px",
               padding: "1rem",
-              marginBottom: "1rem",
+              marginBottom: "1.5rem",
               display: "flex",
               alignItems: "center",
               gap: "10px",
@@ -249,40 +318,8 @@ export default function Checkout() {
             </div>
           </div>
 
-          {/* Loyalty points earned */}
-          {user && Math.floor(finalTotal) > 0 && (
-            <div
-              style={{
-                backgroundColor: "#FFFBEB",
-                border: "1.5px solid #FDE68A",
-                borderRadius: "12px",
-                padding: "0.75rem 1rem",
-                marginBottom: "1.5rem",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-              }}
-            >
-              <span style={{ fontSize: "1.2rem" }}>⭐</span>
-              <p
-                style={{
-                  fontSize: "0.85rem",
-                  fontWeight: 700,
-                  color: "#2C1810",
-                }}
-              >
-                You earned {Math.floor(finalTotal)} loyalty points!
-              </p>
-            </div>
-          )}
-
           <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "0.75rem",
-              marginTop: "1rem",
-            }}
+            style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}
           >
             {user && (
               <Link
@@ -392,9 +429,6 @@ export default function Checkout() {
               fontWeight: 700,
               textDecoration: "none",
               fontSize: "0.9rem",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "4px",
             }}
           >
             ← Back to Shop
@@ -444,7 +478,6 @@ export default function Checkout() {
               >
                 <User size={20} style={{ color: "#FF6B35" }} /> Contact Info
               </h2>
-
               <div
                 style={{
                   display: "flex",
@@ -521,7 +554,6 @@ export default function Checkout() {
                 <MapPin size={20} style={{ color: "#FF6B35" }} /> Delivery
                 Address
               </h2>
-
               <div
                 style={{
                   display: "flex",
@@ -559,7 +591,7 @@ export default function Checkout() {
                 </div>
                 <textarea
                   name="notes"
-                  placeholder="Order notes (optional) — e.g. leave at door, call before delivery..."
+                  placeholder="Order notes (optional)..."
                   value={form.notes}
                   onChange={handleChange}
                   rows={3}
@@ -575,13 +607,84 @@ export default function Checkout() {
                     color: "#2C1810",
                     boxSizing: "border-box",
                     resize: "vertical",
-                    transition: "border-color 0.2s",
                   }}
                   onFocus={(e) => (e.target.style.borderColor = "#FF6B35")}
                   onBlur={(e) => (e.target.style.borderColor = "#FFE0B2")}
                 />
               </div>
             </div>
+
+            {/* Reward claim */}
+            {user && rewardInfo?.hasReward && (
+              <div style={{ marginBottom: "1.25rem" }}>
+                {rewardApplied ? (
+                  <div
+                    style={{
+                      backgroundColor: "#F0FFF4",
+                      border: "1.5px solid #C6F6D5",
+                      borderRadius: "14px",
+                      padding: "1rem 1.25rem",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                      }}
+                    >
+                      <Gift size={18} style={{ color: "#22C55E" }} />
+                      <div>
+                        <p
+                          style={{
+                            fontWeight: 800,
+                            color: "#2C1810",
+                            fontSize: "0.9rem",
+                          }}
+                        >
+                          Reward applied! 🎉
+                        </p>
+                        <p
+                          style={{
+                            color: "#9E9E9E",
+                            fontSize: "0.78rem",
+                            fontWeight: 600,
+                          }}
+                        >
+                          ${rewardAmount.toFixed(2)} off this order
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleClaimReward}
+                      style={{
+                        background: "none",
+                        border: "1.5px solid #C6F6D5",
+                        borderRadius: "8px",
+                        padding: "6px 12px",
+                        cursor: "pointer",
+                        color: "#9E9E9E",
+                        fontFamily: "Nunito, sans-serif",
+                        fontWeight: 700,
+                        fontSize: "0.8rem",
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ) : (
+                  <RewardBanner
+                    profile={profile}
+                    onClaim={handleClaimReward}
+                    compact={true}
+                  />
+                )}
+              </div>
+            )}
 
             {/* Payment Method */}
             <div
@@ -658,7 +761,7 @@ export default function Checkout() {
               </div>
             </div>
 
-            {/* Submit button */}
+            {/* Submit */}
             <button
               type="submit"
               disabled={loading}
@@ -691,7 +794,7 @@ export default function Checkout() {
               ) : (
                 <>
                   <Truck size={20} /> Place Order — $
-                  {getTotalPrice().toFixed(2)}
+                  {totalAfterDiscount.toFixed(2)}
                 </>
               )}
             </button>
@@ -722,7 +825,7 @@ export default function Checkout() {
                 Summary
               </h2>
 
-              {/* Items list */}
+              {/* Items */}
               <div
                 style={{
                   display: "flex",
@@ -827,9 +930,29 @@ export default function Checkout() {
                     Subtotal
                   </span>
                   <span style={{ fontWeight: 700, color: "#2C1810" }}>
-                    ${getTotalPrice().toFixed(2)}
+                    ${subtotal.toFixed(2)}
                   </span>
                 </div>
+
+                {rewardApplied && (
+                  <div
+                    style={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <span
+                      style={{
+                        color: "#22C55E",
+                        fontWeight: 600,
+                        fontSize: "0.9rem",
+                      }}
+                    >
+                      🎉 Tier reward
+                    </span>
+                    <span style={{ fontWeight: 700, color: "#22C55E" }}>
+                      -${rewardAmount.toFixed(2)}
+                    </span>
+                  </div>
+                )}
+
                 <div
                   style={{ display: "flex", justifyContent: "space-between" }}
                 >
@@ -846,24 +969,6 @@ export default function Checkout() {
                     Free
                   </span>
                 </div>
-                {user && (
-                  <div
-                    style={{ display: "flex", justifyContent: "space-between" }}
-                  >
-                    <span
-                      style={{
-                        color: "#9E9E9E",
-                        fontWeight: 600,
-                        fontSize: "0.9rem",
-                      }}
-                    >
-                      Points earned
-                    </span>
-                    <span style={{ fontWeight: 700, color: "#FFB800" }}>
-                      ⭐ +{Math.floor(getTotalPrice())} pts
-                    </span>
-                  </div>
-                )}
               </div>
 
               <div
@@ -889,7 +994,7 @@ export default function Checkout() {
                     color: "#FF6B35",
                   }}
                 >
-                  ${getTotalPrice().toFixed(2)}
+                  ${totalAfterDiscount.toFixed(2)}
                 </span>
               </div>
             </div>

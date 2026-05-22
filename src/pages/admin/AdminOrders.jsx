@@ -41,16 +41,55 @@ function OrderRow({ order, onStatusChange }) {
   async function handleStatusChange(newStatus) {
     setUpdating(true);
     try {
-      await api.patch(
+      const previousStatus = order.status;
+
+      const res = await api.patch(
         `/rest/v1/orders?id=eq.${order.id}`,
         { status: newStatus },
         { headers: { Prefer: "return=representation" } },
       );
+
+      console.log("Patch response:", res.status, res.data);
+
+      // Handle completed_orders count + tier reversal
+      if (order.user_id) {
+        const profileRes = await api.get(
+          `/rest/v1/profiles?id=eq.${order.user_id}&select=completed_orders,total_tiers_claimed`,
+        );
+        const prof = profileRes.data?.[0];
+        if (prof) {
+          let newCompleted = prof.completed_orders || 0;
+          let newTiersClaimed = prof.total_tiers_claimed || 0;
+
+          // Delivered → increment completed orders
+          if (newStatus === "delivered" && previousStatus !== "delivered") {
+            newCompleted = newCompleted + 1;
+          }
+
+          // Un-delivered → decrement completed orders
+          if (previousStatus === "delivered" && newStatus !== "delivered") {
+            newCompleted = Math.max(0, newCompleted - 1);
+          }
+
+          // Cancelled with reward applied → reverse the claimed tier
+          if (newStatus === "cancelled" && previousStatus !== "cancelled") {
+            if (order.reward_applied) {
+              newTiersClaimed = Math.max(0, newTiersClaimed - 1);
+            }
+          }
+
+          await api.patch(`/rest/v1/profiles?id=eq.${order.user_id}`, {
+            completed_orders: newCompleted,
+            total_tiers_claimed: newTiersClaimed,
+          });
+        }
+      }
+
       onStatusChange(order.id, newStatus);
       toast.success(`Order updated to ${newStatus}`, {
         style: { fontFamily: "Nunito, sans-serif", fontWeight: 700 },
       });
-    } catch (error) {
+    } catch {
       toast.error("Failed to update status");
     } finally {
       setUpdating(false);

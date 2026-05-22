@@ -203,3 +203,85 @@ create policy "Users can manage own wishlist"
 
 alter table profiles add column is_admin boolean default false;
 update profiles set is_admin = true where id = 'YOUR_USER_ID_HERE';
+
+alter table orders
+  add column points_earned integer default 0,
+  add column points_redeemed integer default 0,
+  add column discount_amount decimal(10,2) default 0;
+
+alter table profiles
+  drop column if exists loyalty_points,
+  add column if not exists completed_orders integer default 0,
+  add column if not exists reward_claimed boolean default false,
+  add column if not exists total_tiers_claimed integer default 0;
+
+-- Update orders table
+alter table orders
+  drop column if exists points_earned,
+  drop column if exists points_redeemed,
+  add column if not exists reward_applied boolean default false,
+  add column if not exists reward_amount decimal(10,2) default 0;
+
+-- Allow admins to update any order
+create policy "Admins can update orders"
+  on orders for update
+  using (
+    exists (
+      select 1 from profiles
+      where profiles.id = auth.uid()
+      and profiles.is_admin = true
+    )
+  );
+
+-- Allow admins to read all orders
+create policy "Admins can read all orders"
+  on orders for select
+  using (
+    exists (
+      select 1 from profiles
+      where profiles.id = auth.uid()
+      and profiles.is_admin = true
+    )
+  );
+
+-- Allow admins to read all profiles
+create policy "Admins can read all profiles"
+  on profiles for select
+  using (
+    exists (
+      select 1 from profiles
+      where profiles.id = auth.uid()
+      and profiles.is_admin = true
+    )
+  );
+
+-- Allow admins to update all profiles
+create policy "Admins can update profiles"
+  on profiles for update
+  using (
+    exists (
+      select 1 from profiles
+      where profiles.id = auth.uid()
+      and profiles.is_admin = true
+    )
+  );
+
+-- Recreate the function
+create or replace function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.profiles (id, full_name)
+  values (
+    new.id,
+    new.raw_user_meta_data->>'full_name'
+  );
+  return new;
+end;
+$$ language plpgsql security definer;
+
+-- Recreate the trigger
+drop trigger if exists on_auth_user_created on auth.users;
+
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();

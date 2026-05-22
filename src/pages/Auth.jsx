@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 import toast from "react-hot-toast";
 import useAuthStore from "../store/authStore";
+import { supabase } from "../lib/supabase";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -25,13 +26,34 @@ export default function Auth() {
     setLoading(true);
     try {
       if (mode === "login") {
-        await signIn(form.email, form.password);
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: form.email,
+          password: form.password,
+        });
+        if (error) throw error;
+
+        // Fetch profile using the access token directly
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("is_admin")
+          .eq("id", data.user.id)
+          .single()
+          .setHeader("Authorization", `Bearer ${data.session.access_token}`);
+
+        console.log("profile:", profile);
+        console.log("error:", profileError);
+
         toast.success("Welcome back! 👋", {
           style: { fontFamily: "Nunito, sans-serif", fontWeight: 700 },
         });
-        navigate("/");
+
+        if (profile?.is_admin) {
+          navigate("/admin/orders");
+        } else {
+          navigate("/");
+        }
       } else {
-        if (!form.fullName.trim()) {
+        if (!form.fullName?.trim()) {
           toast.error("Please enter your name");
           setLoading(false);
           return;

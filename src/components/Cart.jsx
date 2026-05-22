@@ -2,7 +2,7 @@ import { X, Trash2, Plus, Minus, ShoppingBag } from "lucide-react";
 import { Link } from "react-router-dom";
 import useCartStore from "../store/cartStore";
 
-export default function Cart({ isOpen, onClose }) {
+const Cart = ({ isOpen, onClose }) => {
   const { items, removeItem, updateQuantity, getTotalPrice } = useCartStore();
 
   return (
@@ -424,4 +424,6 @@ export default function Cart({ isOpen, onClose }) {
       </div>
     </>
   );
-}
+};
+
+export default Cart;

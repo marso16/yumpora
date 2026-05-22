@@ -11,7 +11,6 @@ const useAuthStore = create((set) => ({
       data: { session },
     } = await supabase.auth.getSession();
     const user = session?.user ?? null;
-    set({ user, loading: false });
 
     if (user) {
       const { data: profile } = await supabase
@@ -19,22 +18,23 @@ const useAuthStore = create((set) => ({
         .select("*")
         .eq("id", user.id)
         .single();
-      set({ profile });
+      // Only set loading false AFTER profile is fetched
+      set({ user, profile, loading: false });
+    } else {
+      set({ user: null, profile: null, loading: false });
     }
 
     supabase.auth.onAuthStateChange(async (_event, session) => {
       const user = session?.user ?? null;
-      set({ user });
-
       if (user) {
         const { data: profile } = await supabase
           .from("profiles")
           .select("*")
           .eq("id", user.id)
           .single();
-        set({ profile });
+        set({ user, profile });
       } else {
-        set({ profile: null });
+        set({ user: null, profile: null });
       }
     });
   },
