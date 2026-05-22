@@ -158,7 +158,11 @@ function OrderRow({ order, onStatusChange }) {
           <select
             value={order.status}
             onChange={(e) => handleStatusChange(e.target.value)}
-            disabled={updating}
+            disabled={
+              updating ||
+              order.status === "delivered" ||
+              order.status === "cancelled"
+            }
             style={{
               padding: "6px 10px",
               borderRadius: "8px",
@@ -168,8 +172,15 @@ function OrderRow({ order, onStatusChange }) {
               fontFamily: "Nunito, sans-serif",
               fontWeight: 700,
               fontSize: "0.78rem",
-              cursor: "pointer",
               outline: "none",
+              cursor:
+                order.status === "delivered" || order.status === "cancelled"
+                  ? "not-allowed"
+                  : "pointer",
+              opacity:
+                order.status === "delivered" || order.status === "cancelled"
+                  ? 0.6
+                  : 1,
             }}
           >
             {STATUSES.map((s) => (
@@ -358,9 +369,9 @@ export default function AdminOrders() {
       <h1
         style={{
           fontFamily: "Boogaloo, cursive",
-          fontSize: "2.5rem",
+          fontSize: "2rem",
           color: "#2C1810",
-          marginBottom: "1.5rem",
+          marginBottom: "1rem",
         }}
       >
         Orders 📦
@@ -371,8 +382,8 @@ export default function AdminOrders() {
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(4, 1fr)",
-          gap: "1rem",
-          marginBottom: "2rem",
+          gap: "0.75rem",
+          marginBottom: "1rem",
         }}
       >
         {statCards.map((s) => (
@@ -380,17 +391,17 @@ export default function AdminOrders() {
             key={s.label}
             style={{
               backgroundColor: "#fff",
-              borderRadius: "14px",
-              padding: "1.25rem",
+              borderRadius: "12px",
+              padding: "0.85rem 1rem",
               border: "1px solid #E5E5E5",
             }}
           >
             <p
               style={{
                 color: "#9E9E9E",
-                fontSize: "0.8rem",
+                fontSize: "0.75rem",
                 fontWeight: 600,
-                marginBottom: "4px",
+                marginBottom: "2px",
               }}
             >
               {s.label}
@@ -398,7 +409,7 @@ export default function AdminOrders() {
             <p
               style={{
                 fontFamily: "Boogaloo, cursive",
-                fontSize: "2rem",
+                fontSize: "1.5rem",
                 color: s.color,
               }}
             >
@@ -413,7 +424,7 @@ export default function AdminOrders() {
         style={{
           display: "flex",
           gap: "0.5rem",
-          marginBottom: "1.25rem",
+          marginBottom: "0.75rem",
           flexWrap: "wrap",
         }}
       >
@@ -454,10 +465,10 @@ export default function AdminOrders() {
           display: "grid",
           gridTemplateColumns: "1fr 1fr 1fr 1fr auto",
           gap: "1rem",
-          padding: "0.75rem 1.25rem",
+          padding: "0.5rem 1.25rem",
           backgroundColor: "#F5F5F5",
           borderRadius: "10px",
-          marginBottom: "0.75rem",
+          marginBottom: "0.5rem",
         }}
       >
         {["Order", "Customer", "Total", "Status", ""].map((h) => (
@@ -475,40 +486,51 @@ export default function AdminOrders() {
         ))}
       </div>
 
-      {loading ? (
-        <div
-          style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}
-        >
-          {[...Array(5)].map((_, i) => (
-            <div
-              key={i}
-              style={{
-                backgroundColor: "#fff",
-                borderRadius: "14px",
-                height: "72px",
-                opacity: 0.5,
-                border: "1px solid #E5E5E5",
-              }}
+      {/* Scrollable orders container */}
+      <div
+        className="orders-scroll"
+        style={{
+          height: "calc(100vh - 300px)",
+          overflowY: "auto",
+          paddingRight: "4px",
+          paddingBottom: "1rem",
+        }}
+      >
+        {loading ? (
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}
+          >
+            {[...Array(5)].map((_, i) => (
+              <div
+                key={i}
+                style={{
+                  backgroundColor: "#fff",
+                  borderRadius: "14px",
+                  height: "72px",
+                  opacity: 0.5,
+                  border: "1px solid #E5E5E5",
+                }}
+              />
+            ))}
+          </div>
+        ) : filteredOrders.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "4rem 0" }}>
+            <Package
+              size={48}
+              style={{ color: "#E5E5E5", margin: "0 auto 1rem" }}
             />
-          ))}
-        </div>
-      ) : filteredOrders.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "4rem 0" }}>
-          <Package
-            size={48}
-            style={{ color: "#E5E5E5", margin: "0 auto 1rem" }}
-          />
-          <p style={{ fontWeight: 700, color: "#9E9E9E" }}>No orders found</p>
-        </div>
-      ) : (
-        filteredOrders.map((order) => (
-          <OrderRow
-            key={order.id}
-            order={order}
-            onStatusChange={handleStatusChange}
-          />
-        ))
-      )}
+            <p style={{ fontWeight: 700, color: "#9E9E9E" }}>No orders found</p>
+          </div>
+        ) : (
+          filteredOrders.map((order) => (
+            <OrderRow
+              key={order.id}
+              order={order}
+              onStatusChange={handleStatusChange}
+            />
+          ))
+        )}
+      </div>
     </div>
   );
 }

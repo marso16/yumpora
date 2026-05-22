@@ -285,3 +285,35 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
+
+-- Create a function that recalculates completed orders from scratch
+create or replace function sync_completed_orders(user_id uuid)
+returns void as $$
+begin
+  update profiles
+  set completed_orders = (
+    select count(*)
+    from orders
+    where orders.user_id = sync_completed_orders.user_id
+    and orders.status = 'delivered'
+  )
+  where id = sync_completed_orders.user_id;
+end;
+$$ language plpgsql security definer;
+
+-- Create a trigger that syncs whenever an order is updated
+create or replace function on_order_status_change()
+returns trigger as $$
+begin
+  if new.user_id is not null then
+    perform sync_completed_orders(new.user_id);
+  end if;
+  return new;
+end;
+$$ language plpgsql security definer;
+
+drop trigger if exists order_status_change on orders;
+
+create trigger order_status_change
+  after insert or update or delete on orders
+  for each row execute procedure on_order_status_change();

@@ -58,6 +58,8 @@ export default function AdminLayout() {
       style={{
         display: "flex",
         minHeight: "100vh",
+        height: "100vh",
+        overflow: "hidden",
         backgroundColor: "#F5F5F5",
       }}
     >
@@ -199,6 +201,8 @@ export default function AdminLayout() {
           display: "flex",
           flexDirection: "column",
           minWidth: 0,
+          height: "100vh",
+          overflow: "hidden",
         }}
       >
         {/* Top bar */}
@@ -235,7 +239,7 @@ export default function AdminLayout() {
         </div>
 
         {/* Page content */}
-        <div style={{ flex: 1, padding: "2rem", overflowY: "auto" }}>
+        <div style={{ flex: 1, padding: "2rem", overflowY: "hidden" }}>
           <Outlet />
         </div>
       </div>

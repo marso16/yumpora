@@ -1,35 +1,43 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 serve(async (req) => {
-  const payload = await req.json();
-  console.log("Webhook payload:", JSON.stringify(payload));
+  try {
+    const payload = await req.json();
+    const order = payload.record;
 
-  const order = payload.record;
-  console.log("Order:", JSON.stringify(order));
+    const phone = Deno.env.get("MY_PHONE");
+    const apiKey = Deno.env.get("CALLMEBOT_API_KEY");
 
-  const phone = Deno.env.get("MY_PHONE");
-  const apiKey = Deno.env.get("CALLMEBOT_API_KEY");
+    const totalStr = Number(String(order.total_amount ?? "0")).toFixed(2);
+    const shortId = (order.id ?? "").slice(0, 8).toUpperCase();
+    const hasDiscount = Number(order.discount_amount ?? 0) > 0;
+    const discountStr = Number(String(order.discount_amount ?? "0")).toFixed(2);
 
-  const total = parseFloat(order.total_amount || 0).toFixed(2)
+    const message = [
+      `NEW ORDER #${shortId}`,
+      `👤 ${order.customer_name} | ${order.customer_phone}`,
+      `📍 ${order.delivery_address}, ${order.city}`,
+      `📝 ${order.notes || "No notes"}`,
+      hasDiscount ? `Discount: -$${discountStr}` : null,
+      `TOTAL: $${totalStr} | Cash on Delivery`,
+    ]
+      .filter(Boolean)
+      .join("\n");
 
-  const message = `
-🛍️ *NEW ORDER* | 🆔 ${order.id?.slice(0, 8).toUpperCase()}
-━━━━━━━━━━━━━━
-👤 ${order.customer_name} | 📞 ${order.customer_phone}
-📍 ${order.delivery_address}, ${order.city}
-💳 ${order.payment_method} | 💰 *$${total}*
-📝 ${order.notes || "No notes"}
-━━━━━━━━━━━━━━
-🚀 Please process this order.
-  `.trim();
+    console.log("raw total_amount:", order.total_amount);
+    console.log("parsed total:", totalStr);
+    console.log("message length:", message.length);
 
-  const encodedMessage = encodeURIComponent(message);
+    const encodedMessage = encodeURIComponent(message);
+    const url = `https://api.callmebot.com/whatsapp.php?phone=${phone}&text=${encodedMessage}&apikey=${apiKey}`;
 
-  const res = await fetch(
-    `https://api.callmebot.com/whatsapp.php?phone=${phone}&text=${encodedMessage}&apikey=${apiKey}`
-  );
+    const res = await fetch(url);
+    const resText = await res.text();
+    console.log("CallMeBot:", res.status, resText);
 
-  console.log("CallMeBot response:", res.status);
-
-  return new Response("ok");
+    return new Response("ok", { status: 200 });
+  } catch (err) {
+    console.error("Error:", err);
+    return new Response("error", { status: 500 });
+  }
 });

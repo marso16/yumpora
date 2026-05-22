@@ -9,3 +9,21 @@ body {
   background-color: #fff9f0;
   color: #2c1810;
 }
+
+/* Custom scrollbar for admin orders */
+.orders-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.orders-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.orders-scroll::-webkit-scrollbar-thumb {
+  background: #ffe0b2;
+  border-radius: 20px;
+}
+
+.orders-scroll::-webkit-scrollbar-thumb:hover {
+  background: #ff6b35;
+}
