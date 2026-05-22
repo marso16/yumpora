@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, X, Check } from "lucide-react";
 import api from "../../lib/axios";
 import toast from "react-hot-toast";
+import { generateProductDescription } from "../../lib/gemini";
 
 const EMPTY_FORM = {
   name: "",
@@ -22,10 +23,41 @@ export default function AdminProducts() {
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
 
   useEffect(() => {
     fetchData();
   }, []);
+
+  async function handleGenerateDescription() {
+    if (!form.name) {
+      toast.error("Please enter a product name first", {
+        style: { fontFamily: "Nunito, sans-serif", fontWeight: 700 },
+      });
+      return;
+    }
+
+    setAiLoading(true);
+    try {
+      const cat = categories.find((c) => c.id === form.category_id);
+      const description = await generateProductDescription({
+        name: form.name,
+        origin_country: form.origin_country,
+        category: cat?.name,
+      });
+      setForm((f) => ({ ...f, description }));
+      toast.success("Description generated! ✨", {
+        style: { fontFamily: "Nunito, sans-serif", fontWeight: 700 },
+      });
+    } catch (error) {
+      console.error("AI error:", error);
+      toast.error("Failed to generate description. Check your API key.", {
+        style: { fontFamily: "Nunito, sans-serif", fontWeight: 700 },
+      });
+    } finally {
+      setAiLoading(false);
+    }
+  }
 
   async function fetchData() {
     setLoading(true);
@@ -79,16 +111,22 @@ export default function AdminProducts() {
       };
 
       if (editingId) {
-        await api.patch(`/rest/v1/products?id=eq.${editingId}`, payload, {
-          headers: { Prefer: "return=representation" },
-        });
+        const res = await api.patch(
+          `/rest/v1/products?id=eq.${editingId}`,
+          payload,
+          {
+            headers: { Prefer: "return=representation" },
+          },
+        );
+        console.log("Update response:", res.status, res.data);
         toast.success("Product updated!", {
           style: { fontFamily: "Nunito, sans-serif", fontWeight: 700 },
         });
       } else {
-        await api.post("/rest/v1/products", payload, {
+        const res = await api.post("/rest/v1/products", payload, {
           headers: { Prefer: "return=representation" },
         });
+        console.log("Insert response:", res.status, res.data);
         toast.success("Product created!", {
           style: { fontFamily: "Nunito, sans-serif", fontWeight: 700 },
         });
@@ -99,6 +137,7 @@ export default function AdminProducts() {
       setForm(EMPTY_FORM);
       fetchData();
     } catch (error) {
+      console.error("Save error:", error.response?.data || error.message);
       toast.error("Failed to save product");
     } finally {
       setSaving(false);
@@ -114,6 +153,7 @@ export default function AdminProducts() {
         style: { fontFamily: "Nunito, sans-serif", fontWeight: 700 },
       });
     } catch (error) {
+      console.error(error);
       toast.error("Failed to delete product");
     }
   }
@@ -390,25 +430,55 @@ export default function AdminProducts() {
                 ✅ Available
               </label>
             </div>
-
             <div style={{ gridColumn: "1 / -1" }}>
-              <label
+              <div
                 style={{
-                  fontSize: "0.8rem",
-                  fontWeight: 700,
-                  color: "#9E9E9E",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: "4px",
                 }}
               >
-                Description
-              </label>
+                <label
+                  style={{
+                    fontSize: "0.8rem",
+                    fontWeight: 700,
+                    color: "#9E9E9E",
+                  }}
+                >
+                  Description
+                </label>
+                <button
+                  type="button"
+                  onClick={handleGenerateDescription}
+                  disabled={aiLoading || !form.name}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    backgroundColor: aiLoading ? "#BDBDBD" : "#6366F1",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "8px",
+                    padding: "5px 12px",
+                    cursor: aiLoading || !form.name ? "not-allowed" : "pointer",
+                    fontFamily: "Nunito, sans-serif",
+                    fontWeight: 700,
+                    fontSize: "0.78rem",
+                    transition: "background 0.2s",
+                  }}
+                >
+                  {aiLoading ? <>⏳ Generating...</> : <>✨ Generate with AI</>}
+                </button>
+              </div>
               <textarea
                 value={form.description}
                 rows={3}
-                placeholder="Product description..."
+                placeholder="Write a description or click ✨ Generate with AI..."
                 onChange={(e) =>
                   setForm((f) => ({ ...f, description: e.target.value }))
                 }
-                style={{ ...inputStyle, marginTop: "4px", resize: "vertical" }}
+                style={{ ...inputStyle, resize: "vertical" }}
               />
             </div>
           </div>
