@@ -12,6 +12,7 @@ import {
 import api from "../lib/axios";
 import useAuthStore from "../store/authStore";
 import RewardBanner from "../components/RewardBanner";
+import { useWindowSize } from "../hooks/useWindowSize";
 
 const STATUS_CONFIG = {
   pending: {
@@ -62,9 +63,9 @@ function StatusBadge({ status }) {
         backgroundColor: config.bg,
         color: config.color,
         border: `1.5px solid ${config.border}`,
-        padding: "4px 12px",
+        padding: "4px 10px",
         borderRadius: "20px",
-        fontSize: "0.8rem",
+        fontSize: "0.78rem",
         fontWeight: 700,
       }}
     >
@@ -77,6 +78,7 @@ function OrderCard({ order }) {
   const [expanded, setExpanded] = useState(false);
   const [items, setItems] = useState([]);
   const [loadingItems, setLoadingItems] = useState(false);
+  const { isMobile } = useWindowSize();
 
   async function fetchItems() {
     if (items.length > 0) {
@@ -97,10 +99,9 @@ function OrderCard({ order }) {
 
   const date = new Date(order.created_at).toLocaleDateString("en-US", {
     year: "numeric",
-    month: "long",
+    month: "short",
     day: "numeric",
   });
-
   const time = new Date(order.created_at).toLocaleTimeString("en-US", {
     hour: "2-digit",
     minute: "2-digit",
@@ -113,11 +114,9 @@ function OrderCard({ order }) {
         borderRadius: "20px",
         border: "1.5px solid #FFE0B2",
         overflow: "hidden",
-        transition: "box-shadow 0.2s",
       }}
     >
-      {/* Order Header */}
-      <div style={{ padding: "1.25rem 1.5rem" }}>
+      <div style={{ padding: "1.1rem 1.25rem" }}>
         <div
           style={{
             display: "flex",
@@ -134,15 +133,15 @@ function OrderCard({ order }) {
                 display: "flex",
                 alignItems: "center",
                 gap: "8px",
-                marginBottom: "6px",
+                marginBottom: "4px",
               }}
             >
-              <Package size={16} style={{ color: "#FF6B35" }} />
+              <Package size={15} style={{ color: "#FF6B35" }} />
               <span
                 style={{
                   fontWeight: 800,
                   color: "#2C1810",
-                  fontSize: "0.9rem",
+                  fontSize: "0.88rem",
                 }}
               >
                 Order
@@ -150,10 +149,10 @@ function OrderCard({ order }) {
               <span
                 style={{
                   fontFamily: "monospace",
-                  fontSize: "0.75rem",
+                  fontSize: "0.72rem",
                   color: "#9E9E9E",
                   backgroundColor: "#F5F5F5",
-                  padding: "2px 8px",
+                  padding: "2px 7px",
                   borderRadius: "6px",
                 }}
               >
@@ -161,14 +160,14 @@ function OrderCard({ order }) {
               </span>
             </div>
             <p
-              style={{ color: "#9E9E9E", fontSize: "0.82rem", fontWeight: 600 }}
+              style={{ color: "#9E9E9E", fontSize: "0.78rem", fontWeight: 600 }}
             >
               {date} at {time}
             </p>
             <p
               style={{
                 color: "#9E9E9E",
-                fontSize: "0.82rem",
+                fontSize: "0.78rem",
                 marginTop: "2px",
               }}
             >
@@ -182,15 +181,15 @@ function OrderCard({ order }) {
             <p
               style={{
                 fontFamily: "Boogaloo, cursive",
-                fontSize: "1.5rem",
+                fontSize: "1.4rem",
                 color: "#FF6B35",
-                marginTop: "6px",
+                marginTop: "4px",
               }}
             >
               ${parseFloat(order.total_amount).toFixed(2)}
             </p>
             <p
-              style={{ fontSize: "0.75rem", color: "#9E9E9E", fontWeight: 600 }}
+              style={{ fontSize: "0.72rem", color: "#9E9E9E", fontWeight: 600 }}
             >
               💵 Cash on Delivery
             </p>
@@ -201,9 +200,9 @@ function OrderCard({ order }) {
         <button
           onClick={fetchItems}
           style={{
-            marginTop: "1rem",
+            marginTop: "0.875rem",
             width: "100%",
-            padding: "8px",
+            padding: "7px",
             borderRadius: "10px",
             border: "1.5px solid #FFE0B2",
             backgroundColor: expanded ? "#FFF3E0" : "transparent",
@@ -211,35 +210,34 @@ function OrderCard({ order }) {
             cursor: "pointer",
             fontFamily: "Nunito, sans-serif",
             fontWeight: 700,
-            fontSize: "0.85rem",
+            fontSize: "0.82rem",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             gap: "6px",
-            transition: "all 0.2s",
           }}
         >
           {loadingItems ? (
             "Loading..."
           ) : expanded ? (
             <>
-              <ChevronUp size={16} /> Hide Items
+              <ChevronUp size={15} /> Hide Items
             </>
           ) : (
             <>
-              <ChevronDown size={16} /> View Items
+              <ChevronDown size={15} /> View Items
             </>
           )}
         </button>
       </div>
 
-      {/* Order Items — expanded */}
+      {/* Expanded items */}
       {expanded && items.length > 0 && (
         <div
           style={{
             borderTop: "1.5px solid #FFE0B2",
             backgroundColor: "#FFF9F0",
-            padding: "1.25rem 1.5rem",
+            padding: "1rem 1.25rem",
           }}
         >
           <div
@@ -260,15 +258,15 @@ function OrderCard({ order }) {
                 >
                   <div
                     style={{
-                      width: "42px",
-                      height: "42px",
+                      width: "38px",
+                      height: "38px",
                       flexShrink: 0,
                       backgroundColor: "#FFF3E0",
-                      borderRadius: "10px",
+                      borderRadius: "8px",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      fontSize: "1.4rem",
+                      fontSize: "1.2rem",
                     }}
                   >
                     🍫
@@ -278,12 +276,12 @@ function OrderCard({ order }) {
                       style={{
                         fontWeight: 700,
                         color: "#2C1810",
-                        fontSize: "0.88rem",
+                        fontSize: "0.85rem",
                       }}
                     >
                       {item.product_name}
                     </p>
-                    <p style={{ color: "#9E9E9E", fontSize: "0.78rem" }}>
+                    <p style={{ color: "#9E9E9E", fontSize: "0.75rem" }}>
                       ${parseFloat(item.product_price).toFixed(2)} ×{" "}
                       {item.quantity}
                     </p>
@@ -293,7 +291,7 @@ function OrderCard({ order }) {
                   style={{
                     fontWeight: 800,
                     color: "#FF6B35",
-                    fontSize: "0.9rem",
+                    fontSize: "0.88rem",
                     flexShrink: 0,
                   }}
                 >
@@ -302,12 +300,10 @@ function OrderCard({ order }) {
               </div>
             ))}
           </div>
-
-          {/* Order notes */}
           {order.notes && (
             <div
               style={{
-                marginTop: "1rem",
+                marginTop: "0.875rem",
                 padding: "0.75rem",
                 backgroundColor: "#fff",
                 borderRadius: "10px",
@@ -316,7 +312,7 @@ function OrderCard({ order }) {
             >
               <p
                 style={{
-                  fontSize: "0.8rem",
+                  fontSize: "0.78rem",
                   color: "#9E9E9E",
                   fontWeight: 600,
                 }}
@@ -334,6 +330,7 @@ function OrderCard({ order }) {
 export default function Orders() {
   const { user, profile } = useAuthStore();
   const navigate = useNavigate();
+  const { isMobile } = useWindowSize();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
@@ -362,7 +359,6 @@ export default function Orders() {
 
   const filteredOrders =
     filter === "all" ? orders : orders.filter((o) => o.status === filter);
-
   const statusCounts = orders.reduce((acc, o) => {
     acc[o.status] = (acc[o.status] || 0) + 1;
     return acc;
@@ -374,7 +370,7 @@ export default function Orders() {
       <div
         style={{
           background: "linear-gradient(135deg, #FFF3E0 0%, #FFF9C4 100%)",
-          padding: "2.5rem 2rem 2rem",
+          padding: isMobile ? "1.5rem 1rem" : "2.5rem 2rem 2rem",
           borderBottom: "2px solid #FFE0B2",
         }}
       >
@@ -382,50 +378,27 @@ export default function Orders() {
           <h1
             style={{
               fontFamily: "Boogaloo, cursive",
-              fontSize: "3rem",
+              fontSize: isMobile ? "2.2rem" : "3rem",
               color: "#2C1810",
               marginBottom: "0.25rem",
             }}
           >
             My Orders 📦
           </h1>
-          <p style={{ color: "#9E9E9E", fontWeight: 600 }}>
+          <p style={{ color: "#9E9E9E", fontWeight: 600, fontSize: "0.9rem" }}>
             {orders.length} order{orders.length !== 1 ? "s" : ""} placed
           </p>
-
-          {/* Loyalty points banner */}
-          {profile?.loyalty_points > 0 && (
-            <div
-              style={{
-                marginTop: "1rem",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-                backgroundColor: "#FFFBEB",
-                border: "1.5px solid #FDE68A",
-                padding: "8px 16px",
-                borderRadius: "20px",
-              }}
-            >
-              <span>⭐</span>
-              <span
-                style={{
-                  fontWeight: 800,
-                  color: "#2C1810",
-                  fontSize: "0.9rem",
-                }}
-              >
-                {profile.loyalty_points} loyalty points earned
-              </span>
-            </div>
-          )}
         </div>
       </div>
 
       <div
-        style={{ maxWidth: "800px", margin: "0 auto", padding: "2rem 1.5rem" }}
+        style={{
+          maxWidth: "800px",
+          margin: "0 auto",
+          padding: isMobile ? "1rem" : "2rem 1.5rem",
+        }}
       >
-        {/* Reward Banner — add here */}
+        {/* Reward Banner */}
         {profile && <RewardBanner profile={profile} />}
 
         {/* Filter tabs */}
@@ -433,8 +406,8 @@ export default function Orders() {
           <div
             style={{
               display: "flex",
-              gap: "0.5rem",
-              marginBottom: "1.5rem",
+              gap: "0.4rem",
+              marginBottom: "1.25rem",
               flexWrap: "wrap",
             }}
           >
@@ -454,7 +427,7 @@ export default function Orders() {
                   key={s}
                   onClick={() => setFilter(s)}
                   style={{
-                    padding: "7px 16px",
+                    padding: isMobile ? "5px 10px" : "7px 14px",
                     borderRadius: "20px",
                     border: "1.5px solid",
                     borderColor:
@@ -465,7 +438,7 @@ export default function Orders() {
                       filter === s ? config?.color || "#FF6B35" : "#9E9E9E",
                     fontFamily: "Nunito, sans-serif",
                     fontWeight: 700,
-                    fontSize: "0.82rem",
+                    fontSize: isMobile ? "0.75rem" : "0.82rem",
                     cursor: "pointer",
                     transition: "all 0.2s",
                   }}
@@ -476,6 +449,7 @@ export default function Orders() {
             })}
           </div>
         )}
+
         {/* Orders list */}
         {loading ? (
           <div
@@ -487,7 +461,7 @@ export default function Orders() {
                 style={{
                   backgroundColor: "#fff",
                   borderRadius: "20px",
-                  height: "140px",
+                  height: "130px",
                   opacity: 0.5,
                   border: "1.5px solid #FFE0B2",
                 }}
@@ -495,17 +469,12 @@ export default function Orders() {
             ))}
           </div>
         ) : filteredOrders.length === 0 ? (
-          <div
-            style={{
-              textAlign: "center",
-              padding: "5rem 0",
-            }}
-          >
-            <p style={{ fontSize: "4rem", marginBottom: "1rem" }}>📦</p>
+          <div style={{ textAlign: "center", padding: "4rem 0" }}>
+            <p style={{ fontSize: "3.5rem", marginBottom: "1rem" }}>📦</p>
             <p
               style={{
                 fontWeight: 800,
-                fontSize: "1.25rem",
+                fontSize: "1.15rem",
                 color: "#2C1810",
                 marginBottom: "0.5rem",
               }}
@@ -514,7 +483,13 @@ export default function Orders() {
                 ? "No orders yet"
                 : `No ${STATUS_CONFIG[filter]?.label} orders`}
             </p>
-            <p style={{ color: "#BDBDBD", marginBottom: "1.5rem" }}>
+            <p
+              style={{
+                color: "#BDBDBD",
+                marginBottom: "1.5rem",
+                fontSize: "0.9rem",
+              }}
+            >
               {filter === "all"
                 ? "Time to treat yourself to some exotic snacks!"
                 : "Try a different filter"}

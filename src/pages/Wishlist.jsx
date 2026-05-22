@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import useWishlistStore from "../store/wishlistStore";
 import useCartStore from "../store/cartStore";
 import useAuthStore from "../store/authStore";
+import { useWindowSize } from "../hooks/useWindowSize";
 
 export default function Wishlist() {
   const navigate = useNavigate();
@@ -12,6 +13,7 @@ export default function Wishlist() {
   const { items, loading, fetchWishlist, removeFromWishlist } =
     useWishlistStore();
   const addItem = useCartStore((state) => state.addItem);
+  const { isMobile, isTablet } = useWindowSize();
 
   useEffect(() => {
     if (!user) {
@@ -39,13 +41,19 @@ export default function Wishlist() {
     });
   }
 
+  const gridCols = isMobile
+    ? "repeat(2, 1fr)"
+    : isTablet
+      ? "repeat(3, 1fr)"
+      : "repeat(3, 1fr)";
+
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#FFF9F0" }}>
       {/* Header */}
       <div
         style={{
           background: "linear-gradient(135deg, #FFF3E0 0%, #FFF9C4 100%)",
-          padding: "2.5rem 2rem 2rem",
+          padding: isMobile ? "1.5rem 1rem" : "2.5rem 2rem 2rem",
           borderBottom: "2px solid #FFE0B2",
         }}
       >
@@ -53,28 +61,32 @@ export default function Wishlist() {
           <h1
             style={{
               fontFamily: "Boogaloo, cursive",
-              fontSize: "3rem",
+              fontSize: isMobile ? "2.2rem" : "3rem",
               color: "#2C1810",
               marginBottom: "0.25rem",
             }}
           >
             My Wishlist ❤️
           </h1>
-          <p style={{ color: "#9E9E9E", fontWeight: 600 }}>
+          <p style={{ color: "#9E9E9E", fontWeight: 600, fontSize: "0.9rem" }}>
             {items.length} saved item{items.length !== 1 ? "s" : ""}
           </p>
         </div>
       </div>
 
       <div
-        style={{ maxWidth: "900px", margin: "0 auto", padding: "2rem 1.5rem" }}
+        style={{
+          maxWidth: "900px",
+          margin: "0 auto",
+          padding: isMobile ? "1rem" : "2rem 1.5rem",
+        }}
       >
         {loading ? (
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: "1.25rem",
+              gridTemplateColumns: gridCols,
+              gap: "1rem",
             }}
           >
             {[...Array(3)].map((_, i) => (
@@ -83,7 +95,7 @@ export default function Wishlist() {
                 style={{
                   backgroundColor: "#fff",
                   borderRadius: "16px",
-                  height: "280px",
+                  height: "240px",
                   opacity: 0.5,
                   border: "1.5px solid #FFE0B2",
                 }}
@@ -91,22 +103,28 @@ export default function Wishlist() {
             ))}
           </div>
         ) : items.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "5rem 0" }}>
+          <div style={{ textAlign: "center", padding: "4rem 0" }}>
             <Heart
-              size={64}
+              size={56}
               style={{ color: "#FFE0B2", margin: "0 auto 1rem" }}
             />
             <p
               style={{
                 fontWeight: 800,
-                fontSize: "1.25rem",
+                fontSize: "1.15rem",
                 color: "#2C1810",
                 marginBottom: "0.5rem",
               }}
             >
               Your wishlist is empty
             </p>
-            <p style={{ color: "#BDBDBD", marginBottom: "1.5rem" }}>
+            <p
+              style={{
+                color: "#BDBDBD",
+                marginBottom: "1.5rem",
+                fontSize: "0.9rem",
+              }}
+            >
               Save items you love by clicking the heart icon
             </p>
             <Link
@@ -132,7 +150,7 @@ export default function Wishlist() {
               style={{
                 display: "flex",
                 justifyContent: "flex-end",
-                marginBottom: "1.25rem",
+                marginBottom: "1rem",
               }}
             >
               <button
@@ -151,16 +169,16 @@ export default function Wishlist() {
                   gap: "8px",
                   backgroundColor: "#FF6B35",
                   color: "#fff",
-                  padding: "10px 20px",
+                  padding: "9px 18px",
                   borderRadius: "12px",
                   border: "none",
                   cursor: "pointer",
                   fontFamily: "Nunito, sans-serif",
                   fontWeight: 700,
-                  fontSize: "0.9rem",
+                  fontSize: "0.88rem",
                 }}
               >
-                <ShoppingCart size={17} />
+                <ShoppingCart size={16} />
                 Add All to Cart
               </button>
             </div>
@@ -168,8 +186,8 @@ export default function Wishlist() {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
-                gap: "1.25rem",
+                gridTemplateColumns: gridCols,
+                gap: "1rem",
               }}
             >
               {items.map((item) => {
@@ -200,13 +218,13 @@ export default function Wishlist() {
                     {/* Image */}
                     <div
                       style={{
-                        height: "160px",
+                        height: isMobile ? "120px" : "150px",
                         background: "linear-gradient(135deg, #FFF3E0, #FFF9C4)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                         position: "relative",
-                        fontSize: "4rem",
+                        fontSize: "3.5rem",
                       }}
                     >
                       {product.image_url ? (
@@ -223,7 +241,6 @@ export default function Wishlist() {
                         "🍫"
                       )}
 
-                      {/* Remove button */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -231,13 +248,13 @@ export default function Wishlist() {
                         }}
                         style={{
                           position: "absolute",
-                          top: "10px",
-                          right: "10px",
+                          top: "8px",
+                          right: "8px",
                           backgroundColor: "#fff",
                           border: "1.5px solid #FFE0B2",
                           borderRadius: "50%",
-                          width: "34px",
-                          height: "34px",
+                          width: "32px",
+                          height: "32px",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
@@ -254,17 +271,17 @@ export default function Wishlist() {
                           e.currentTarget.style.color = "#BDBDBD";
                         }}
                       >
-                        <Trash2 size={15} />
+                        <Trash2 size={14} />
                       </button>
                     </div>
 
                     {/* Info */}
-                    <div style={{ padding: "0.9rem" }}>
+                    <div style={{ padding: isMobile ? "0.7rem" : "0.9rem" }}>
                       <p
                         style={{
                           fontWeight: 800,
                           color: "#2C1810",
-                          fontSize: "0.9rem",
+                          fontSize: isMobile ? "0.82rem" : "0.9rem",
                           marginBottom: "2px",
                         }}
                       >
@@ -273,8 +290,8 @@ export default function Wishlist() {
                       <p
                         style={{
                           color: "#9E9E9E",
-                          fontSize: "0.78rem",
-                          marginBottom: "0.75rem",
+                          fontSize: "0.75rem",
+                          marginBottom: "0.6rem",
                         }}
                       >
                         🌐 {product.origin_country}
@@ -290,7 +307,7 @@ export default function Wishlist() {
                           style={{
                             color: "#FF6B35",
                             fontWeight: 800,
-                            fontSize: "1rem",
+                            fontSize: "0.95rem",
                           }}
                         >
                           ${product.price}
@@ -303,16 +320,16 @@ export default function Wishlist() {
                           style={{
                             display: "flex",
                             alignItems: "center",
-                            gap: "5px",
+                            gap: "4px",
                             backgroundColor: "#FF6B35",
                             color: "#fff",
-                            padding: "7px 12px",
+                            padding: isMobile ? "5px 9px" : "7px 12px",
                             borderRadius: "9px",
                             border: "none",
                             cursor: "pointer",
                             fontFamily: "Nunito, sans-serif",
                             fontWeight: 700,
-                            fontSize: "0.8rem",
+                            fontSize: "0.78rem",
                           }}
                           onMouseEnter={(e) =>
                             (e.currentTarget.style.backgroundColor = "#e55a2b")
@@ -321,7 +338,7 @@ export default function Wishlist() {
                             (e.currentTarget.style.backgroundColor = "#FF6B35")
                           }
                         >
-                          <ShoppingCart size={14} /> Add
+                          <ShoppingCart size={13} /> Add
                         </button>
                       </div>
                     </div>

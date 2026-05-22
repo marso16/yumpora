@@ -3,11 +3,13 @@ import { Link } from "react-router-dom";
 import { ArrowRight, Zap, Globe, Package } from "lucide-react";
 import api from "../lib/axios";
 import ProductCard from "../components/ProductCard";
+import { useWindowSize } from "../hooks/useWindowSize";
 
 export default function Home() {
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { isMobile, isTablet } = useWindowSize();
 
   useEffect(() => {
     fetchData();
@@ -39,114 +41,301 @@ export default function Home() {
     "mixed-snacks": "🎁",
   };
 
+  const featuredCols = isMobile
+    ? "repeat(2, 1fr)"
+    : isTablet
+      ? "repeat(2, 1fr)"
+      : "repeat(4, 1fr)";
+  const categoryCols = isMobile
+    ? "repeat(3, 1fr)"
+    : isTablet
+      ? "repeat(3, 1fr)"
+      : "repeat(6, 1fr)";
+
   return (
     <div>
       {/* HERO */}
-      <section className="bg-gradient-to-br from-orange-50 via-yellow-50 to-pink-50 py-20 px-4">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-10">
-          <div className="flex-1 text-center md:text-left">
-            <span className="inline-block bg-secondary text-dark text-sm font-bold px-4 py-1.5 rounded-full mb-4">
+      <section
+        style={{
+          background: "linear-gradient(135deg, #FFF3E0, #FFFDE7, #FFF0F5)",
+          padding: isMobile ? "2.5rem 1rem" : "5rem 1.5rem",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: "1200px",
+            margin: "0 auto",
+            display: "flex",
+            flexDirection: isMobile ? "column" : "row",
+            alignItems: "center",
+            gap: isMobile ? "2rem" : "2.5rem",
+          }}
+        >
+          {/* Text */}
+          <div style={{ flex: 1, textAlign: isMobile ? "center" : "left" }}>
+            <span
+              style={{
+                display: "inline-block",
+                backgroundColor: "#FFB800",
+                color: "#2C1810",
+                fontSize: "0.85rem",
+                fontWeight: 800,
+                padding: "6px 16px",
+                borderRadius: "50px",
+                marginBottom: "1rem",
+              }}
+            >
               🌍 Snacks from 30+ Countries
             </span>
-            <h1 className="font-display text-5xl md:text-7xl text-dark leading-tight mb-4">
+            <h1
+              style={{
+                fontFamily: "Boogaloo, cursive",
+                fontSize: isMobile ? "3rem" : "5rem",
+                color: "#2C1810",
+                lineHeight: 1.1,
+                marginBottom: "1rem",
+              }}
+            >
               Snacks From
-              <span className="text-primary"> Around</span>
+              <span style={{ color: "#FF6B35" }}> Around</span>
               <br />
               the World
             </h1>
-            <p className="text-gray-500 text-lg mb-8 max-w-md">
+            <p
+              style={{
+                color: "#9E9E9E",
+                fontSize: isMobile ? "0.95rem" : "1.1rem",
+                marginBottom: "1.75rem",
+                maxWidth: "420px",
+                margin: isMobile ? "0 auto 1.75rem" : "0 0 1.75rem",
+              }}
+            >
               Discover exotic chocolates, chips, candies and more — delivered
               straight to your door.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
+            <div
+              style={{
+                display: "flex",
+                flexDirection: isMobile ? "column" : "row",
+                gap: "0.75rem",
+                justifyContent: isMobile ? "center" : "flex-start",
+                alignItems: isMobile ? "stretch" : "center",
+              }}
+            >
               <Link
                 to="/shop"
-                className="flex items-center justify-center gap-2 bg-primary text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-orange-600 transition-colors"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  backgroundColor: "#FF6B35",
+                  color: "#fff",
+                  padding: "14px 28px",
+                  borderRadius: "16px",
+                  fontFamily: "Nunito, sans-serif",
+                  fontWeight: 800,
+                  fontSize: "1rem",
+                  textDecoration: "none",
+                }}
               >
-                Shop Now <ArrowRight size={20} />
+                Shop Now <ArrowRight size={18} />
               </Link>
               <Link
-                to="/categories"
-                className="flex items-center justify-center gap-2 border-2 border-primary text-primary px-8 py-4 rounded-2xl font-bold text-lg hover:bg-orange-50 transition-colors"
+                to="/shop"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  border: "2px solid #FF6B35",
+                  color: "#FF6B35",
+                  padding: "14px 28px",
+                  borderRadius: "16px",
+                  fontFamily: "Nunito, sans-serif",
+                  fontWeight: 800,
+                  fontSize: "1rem",
+                  textDecoration: "none",
+                  backgroundColor: "transparent",
+                }}
               >
                 Browse Categories
               </Link>
             </div>
           </div>
 
-          {/* Hero visual */}
-          <div className="flex-1 flex justify-center">
-            <div className="grid grid-cols-2 gap-4 max-w-xs">
-              {["🍫", "🍟", "🍬", "🍪"].map((emoji, i) => (
-                <div
-                  key={i}
-                  className="bg-white w-32 h-32 rounded-3xl flex items-center justify-center text-5xl shadow-sm border border-orange-100"
-                  style={{
-                    transform: i % 2 === 0 ? "rotate(-3deg)" : "rotate(3deg)",
-                  }}
-                >
-                  {emoji}
-                </div>
-              ))}
+          {/* Hero visual — hide on very small screens */}
+          {!isMobile && (
+            <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(2, 1fr)",
+                  gap: "1rem",
+                  maxWidth: "280px",
+                }}
+              >
+                {["🍫", "🍟", "🍬", "🍪"].map((emoji, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      backgroundColor: "#fff",
+                      width: "120px",
+                      height: "120px",
+                      borderRadius: "24px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "3.5rem",
+                      border: "1px solid #FFE0B2",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
+                      transform: i % 2 === 0 ? "rotate(-3deg)" : "rotate(3deg)",
+                    }}
+                  >
+                    {emoji}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </section>
 
       {/* PERKS */}
-      <section className="py-10 bg-primary">
-        <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-6 text-white text-center">
+      <section
+        style={{
+          backgroundColor: "#FF6B35",
+          padding: isMobile ? "1.5rem 1rem" : "2.5rem 1.5rem",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: "1200px",
+            margin: "0 auto",
+            display: "grid",
+            gridTemplateColumns: isMobile ? "repeat(3, 1fr)" : "repeat(3, 1fr)",
+            gap: isMobile ? "1rem" : "2rem",
+            color: "#fff",
+            textAlign: "center",
+          }}
+        >
           {[
             {
-              icon: <Globe size={28} />,
+              icon: <Globe size={isMobile ? 22 : 28} />,
               title: "30+ Countries",
-              desc: "Sourced from around the world",
+              desc: "Sourced globally",
             },
             {
-              icon: <Zap size={28} />,
+              icon: <Zap size={isMobile ? 22 : 28} />,
               title: "Fast Delivery",
-              desc: "Quick delivery to your door",
+              desc: "To your door",
             },
             {
-              icon: <Package size={28} />,
+              icon: <Package size={isMobile ? 22 : 28} />,
               title: "Cash on Delivery",
-              desc: "Pay when you receive",
+              desc: "Pay on receipt",
             },
           ].map((perk, i) => (
-            <div key={i} className="flex flex-col items-center gap-2">
+            <div
+              key={i}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "6px",
+              }}
+            >
               {perk.icon}
-              <p className="font-bold text-lg">{perk.title}</p>
-              <p className="text-orange-100 text-sm">{perk.desc}</p>
+              <p
+                style={{
+                  fontWeight: 800,
+                  fontSize: isMobile ? "0.82rem" : "1rem",
+                }}
+              >
+                {perk.title}
+              </p>
+              <p
+                style={{
+                  color: "rgba(255,255,255,0.8)",
+                  fontSize: isMobile ? "0.72rem" : "0.85rem",
+                }}
+              >
+                {perk.desc}
+              </p>
             </div>
           ))}
         </div>
       </section>
 
       {/* CATEGORIES */}
-      <section className="py-16 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="font-display text-4xl text-dark">
+      <section style={{ padding: isMobile ? "2rem 1rem" : "4rem 1.5rem" }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: "1.25rem",
+            }}
+          >
+            <h2
+              style={{
+                fontFamily: "Boogaloo, cursive",
+                fontSize: isMobile ? "1.75rem" : "2.5rem",
+                color: "#2C1810",
+              }}
+            >
               Shop by Category
             </h2>
             <Link
-              to="/categories"
-              className="text-primary font-bold flex items-center gap-1 hover:gap-2 transition-all"
+              to="/shop"
+              style={{
+                color: "#FF6B35",
+                fontWeight: 700,
+                textDecoration: "none",
+                fontSize: "0.9rem",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+              }}
             >
-              View all <ArrowRight size={18} />
+              View all <ArrowRight size={16} />
             </Link>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: categoryCols,
+              gap: "0.75rem",
+            }}
+          >
             {categories.map((cat) => (
               <Link
                 key={cat.id}
                 to={`/shop?category=${cat.slug}`}
-                className="bg-white border border-orange-100 rounded-2xl p-4 flex flex-col items-center gap-2 hover:border-primary hover:shadow-sm transition-all group"
+                style={{
+                  backgroundColor: "#fff",
+                  border: "1.5px solid #FFE0B2",
+                  borderRadius: "16px",
+                  padding: isMobile ? "0.75rem 0.5rem" : "1rem",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: "6px",
+                  textDecoration: "none",
+                }}
               >
-                <span className="text-4xl">
+                <span style={{ fontSize: isMobile ? "1.75rem" : "2.5rem" }}>
                   {categoryEmojis[cat.slug] || "🍿"}
                 </span>
-                <span className="font-bold text-sm text-center text-dark group-hover:text-primary transition-colors">
+                <span
+                  style={{
+                    fontWeight: 700,
+                    fontSize: isMobile ? "0.7rem" : "0.85rem",
+                    textAlign: "center",
+                    color: "#2C1810",
+                  }}
+                >
                   {cat.name}
                 </span>
               </Link>
@@ -156,29 +345,74 @@ export default function Home() {
       </section>
 
       {/* FEATURED PRODUCTS */}
-      <section className="py-16 px-4 bg-orange-50">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="font-display text-4xl text-dark">Featured Snacks</h2>
+      <section
+        style={{
+          backgroundColor: "#FFF3E0",
+          padding: isMobile ? "2rem 1rem" : "4rem 1.5rem",
+        }}
+      >
+        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: "1.25rem",
+            }}
+          >
+            <h2
+              style={{
+                fontFamily: "Boogaloo, cursive",
+                fontSize: isMobile ? "1.75rem" : "2.5rem",
+                color: "#2C1810",
+              }}
+            >
+              Featured Snacks
+            </h2>
             <Link
               to="/shop"
-              className="text-primary font-bold flex items-center gap-1 hover:gap-2 transition-all"
+              style={{
+                color: "#FF6B35",
+                fontWeight: 700,
+                textDecoration: "none",
+                fontSize: "0.9rem",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+              }}
             >
-              View all <ArrowRight size={18} />
+              View all <ArrowRight size={16} />
             </Link>
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: featuredCols,
+                gap: "1rem",
+              }}
+            >
               {[...Array(4)].map((_, i) => (
                 <div
                   key={i}
-                  className="bg-white rounded-2xl h-72 animate-pulse"
+                  style={{
+                    backgroundColor: "#fff",
+                    borderRadius: "16px",
+                    height: "260px",
+                    opacity: 0.5,
+                  }}
                 />
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: featuredCols,
+                gap: "1rem",
+              }}
+            >
               {featuredProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
@@ -188,11 +422,24 @@ export default function Home() {
       </section>
 
       {/* FOOTER */}
-      <footer className="bg-dark text-white py-10 px-4 text-center">
-        <p className="font-display text-2xl mb-2">
-          Yum<span className="text-secondary">pora</span>
+      <footer
+        style={{
+          backgroundColor: "#2C1810",
+          color: "#fff",
+          padding: isMobile ? "1.5rem 1rem" : "2.5rem 1.5rem",
+          textAlign: "center",
+        }}
+      >
+        <p
+          style={{
+            fontFamily: "Boogaloo, cursive",
+            fontSize: "1.75rem",
+            marginBottom: "0.5rem",
+          }}
+        >
+          Yum<span style={{ color: "#FFB800" }}>pora</span>
         </p>
-        <p className="text-gray-400 text-sm">
+        <p style={{ color: "#9E9E9E", fontSize: "0.85rem" }}>
           © 2026 Yumpora. All rights reserved.
         </p>
       </footer>

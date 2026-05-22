@@ -448,7 +448,7 @@ export default function Checkout() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "1fr 400px",
+            gridTemplateColumns: window.innerWidth < 768 ? "1fr" : "1fr 400px",
             gap: "2rem",
             alignItems: "flex-start",
           }}

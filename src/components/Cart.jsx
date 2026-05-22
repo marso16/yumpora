@@ -1,9 +1,13 @@
 import { X, Trash2, Plus, Minus, ShoppingBag } from "lucide-react";
 import { Link } from "react-router-dom";
 import useCartStore from "../store/cartStore";
+import { useWindowSize } from "../hooks/useWindowSize";
 
 const Cart = ({ isOpen, onClose }) => {
   const { items, removeItem, updateQuantity, getTotalPrice } = useCartStore();
+  const { isMobile, width } = useWindowSize();
+
+  const drawerWidth = isMobile ? `${width}px` : "420px";
 
   return (
     <>
@@ -28,7 +32,7 @@ const Cart = ({ isOpen, onClose }) => {
           top: 0,
           right: 0,
           height: "100vh",
-          width: "420px",
+          width: drawerWidth,
           backgroundColor: "#fff",
           zIndex: 100,
           transform: isOpen ? "translateX(0)" : "translateX(100%)",
@@ -143,25 +147,25 @@ const Cart = ({ isOpen, onClose }) => {
                   style={{
                     backgroundColor: "#FFF9F0",
                     borderRadius: "14px",
-                    padding: "1rem",
+                    padding: "0.875rem",
                     border: "1.5px solid #FFE0B2",
                     display: "flex",
-                    gap: "1rem",
+                    gap: "0.875rem",
                     alignItems: "center",
                   }}
                 >
                   {/* Image */}
                   <div
                     style={{
-                      width: "64px",
-                      height: "64px",
+                      width: "58px",
+                      height: "58px",
                       flexShrink: 0,
                       backgroundColor: "#FFF3E0",
                       borderRadius: "10px",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      fontSize: "2rem",
+                      fontSize: "1.75rem",
                     }}
                   >
                     {item.image_url ? (
@@ -186,7 +190,7 @@ const Cart = ({ isOpen, onClose }) => {
                       style={{
                         fontWeight: 800,
                         color: "#2C1810",
-                        fontSize: "0.9rem",
+                        fontSize: "0.88rem",
                         marginBottom: "2px",
                         whiteSpace: "nowrap",
                         overflow: "hidden",
@@ -199,19 +203,16 @@ const Cart = ({ isOpen, onClose }) => {
                       style={{
                         color: "#FF6B35",
                         fontWeight: 800,
-                        fontSize: "0.95rem",
+                        fontSize: "0.9rem",
                       }}
                     >
                       ${(item.price * item.quantity).toFixed(2)}
                     </p>
-
-                    {/* Quantity controls */}
                     <div
                       style={{
                         display: "flex",
                         alignItems: "center",
-                        gap: "0",
-                        marginTop: "8px",
+                        marginTop: "6px",
                         width: "fit-content",
                       }}
                     >
@@ -220,10 +221,10 @@ const Cart = ({ isOpen, onClose }) => {
                           updateQuantity(item.id, item.quantity - 1)
                         }
                         style={{
-                          width: "28px",
-                          height: "28px",
+                          width: "26px",
+                          height: "26px",
                           border: "1.5px solid #FFE0B2",
-                          borderRadius: "8px 0 0 8px",
+                          borderRadius: "7px 0 0 7px",
                           backgroundColor: "#fff",
                           cursor: "pointer",
                           display: "flex",
@@ -232,12 +233,12 @@ const Cart = ({ isOpen, onClose }) => {
                           color: "#FF6B35",
                         }}
                       >
-                        <Minus size={13} />
+                        <Minus size={12} />
                       </button>
                       <div
                         style={{
-                          width: "36px",
-                          height: "28px",
+                          width: "32px",
+                          height: "26px",
                           border: "1.5px solid #FFE0B2",
                           borderLeft: "none",
                           borderRight: "none",
@@ -245,7 +246,7 @@ const Cart = ({ isOpen, onClose }) => {
                           alignItems: "center",
                           justifyContent: "center",
                           fontWeight: 800,
-                          fontSize: "0.85rem",
+                          fontSize: "0.82rem",
                           backgroundColor: "#fff",
                           color: "#2C1810",
                         }}
@@ -257,10 +258,10 @@ const Cart = ({ isOpen, onClose }) => {
                           updateQuantity(item.id, item.quantity + 1)
                         }
                         style={{
-                          width: "28px",
-                          height: "28px",
+                          width: "26px",
+                          height: "26px",
                           border: "1.5px solid #FFE0B2",
-                          borderRadius: "0 8px 8px 0",
+                          borderRadius: "0 7px 7px 0",
                           backgroundColor: "#fff",
                           cursor: "pointer",
                           display: "flex",
@@ -269,7 +270,7 @@ const Cart = ({ isOpen, onClose }) => {
                           color: "#FF6B35",
                         }}
                       >
-                        <Plus size={13} />
+                        <Plus size={12} />
                       </button>
                     </div>
                   </div>
@@ -294,7 +295,7 @@ const Cart = ({ isOpen, onClose }) => {
                       (e.currentTarget.style.color = "#BDBDBD")
                     }
                   >
-                    <Trash2 size={17} />
+                    <Trash2 size={16} />
                   </button>
                 </div>
               ))}
@@ -311,25 +312,21 @@ const Cart = ({ isOpen, onClose }) => {
               backgroundColor: "#FFF9F0",
             }}
           >
-            {/* Subtotal */}
             <div
               style={{
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                marginBottom: "0.5rem",
+                marginBottom: "0.4rem",
               }}
             >
               <span style={{ color: "#9E9E9E", fontWeight: 600 }}>
                 Subtotal
               </span>
-              <span
-                style={{ fontWeight: 800, color: "#2C1810", fontSize: "1rem" }}
-              >
+              <span style={{ fontWeight: 800, color: "#2C1810" }}>
                 ${getTotalPrice().toFixed(2)}
               </span>
             </div>
-
             <div
               style={{
                 display: "flex",
@@ -343,7 +340,6 @@ const Cart = ({ isOpen, onClose }) => {
               </span>
               <span style={{ fontWeight: 800, color: "#4CAF50" }}>Free</span>
             </div>
-
             <div
               style={{
                 display: "flex",
@@ -370,7 +366,6 @@ const Cart = ({ isOpen, onClose }) => {
               </span>
             </div>
 
-            {/* COD badge */}
             <div
               style={{
                 backgroundColor: "#FFF3E0",
@@ -408,7 +403,6 @@ const Cart = ({ isOpen, onClose }) => {
                 fontWeight: 800,
                 fontSize: "1rem",
                 textDecoration: "none",
-                transition: "background 0.2s",
               }}
               onMouseEnter={(e) =>
                 (e.currentTarget.style.backgroundColor = "#e55a2b")

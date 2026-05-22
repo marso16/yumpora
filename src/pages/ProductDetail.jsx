@@ -12,14 +12,17 @@ import toast from "react-hot-toast";
 import api from "../lib/axios";
 import useCartStore from "../store/cartStore";
 import WishlistButton from "../components/WishlistButton";
+import { useWindowSize } from "../hooks/useWindowSize";
 
 export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { isMobile } = useWindowSize();
   const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
+  const addItem = useCartStore((state) => state.addItem);
 
   useEffect(() => {
     fetchProduct();
@@ -54,8 +57,6 @@ export default function ProductDetail() {
       console.error("Error fetching related:", error);
     }
   }
-
-  const addItem = useCartStore((state) => state.addItem);
 
   function handleAddToCart() {
     addItem(product, quantity);
@@ -96,7 +97,11 @@ export default function ProductDetail() {
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#FFF9F0" }}>
       <div
-        style={{ maxWidth: "1200px", margin: "0 auto", padding: "2rem 1.5rem" }}
+        style={{
+          maxWidth: "1200px",
+          margin: "0 auto",
+          padding: isMobile ? "1rem" : "2rem 1.5rem",
+        }}
       >
         {/* BREADCRUMB */}
         <div
@@ -104,7 +109,8 @@ export default function ProductDetail() {
             display: "flex",
             alignItems: "center",
             gap: "8px",
-            marginBottom: "2rem",
+            marginBottom: "1.5rem",
+            flexWrap: "wrap",
           }}
         >
           <button
@@ -139,7 +145,15 @@ export default function ProductDetail() {
           </Link>
           <span style={{ color: "#BDBDBD" }}>•</span>
           <span
-            style={{ color: "#2C1810", fontWeight: 700, fontSize: "0.9rem" }}
+            style={{
+              color: "#2C1810",
+              fontWeight: 700,
+              fontSize: "0.9rem",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              maxWidth: "200px",
+            }}
           >
             {product.name}
           </span>
@@ -149,12 +163,12 @@ export default function ProductDetail() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "3rem",
-            marginBottom: "4rem",
+            gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+            gap: isMobile ? "1.5rem" : "3rem",
+            marginBottom: "3rem",
           }}
         >
-          {/* LEFT — Image */}
+          {/* Image */}
           <div
             style={{
               background: "linear-gradient(135deg, #FFF3E0, #FFF9C4)",
@@ -163,7 +177,7 @@ export default function ProductDetail() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              minHeight: "400px",
+              minHeight: isMobile ? "260px" : "400px",
               position: "relative",
             }}
           >
@@ -173,13 +187,13 @@ export default function ProductDetail() {
                 alt={product.name}
                 style={{
                   width: "100%",
-                  height: "400px",
+                  height: isMobile ? "260px" : "400px",
                   objectFit: "cover",
                   borderRadius: "24px",
                 }}
               />
             ) : (
-              <span style={{ fontSize: "8rem" }}>
+              <span style={{ fontSize: isMobile ? "6rem" : "8rem" }}>
                 {categoryEmojis[product.slug] || "🍫"}
               </span>
             )}
@@ -202,7 +216,7 @@ export default function ProductDetail() {
             )}
           </div>
 
-          {/* RIGHT — Info */}
+          {/* Info */}
           <div
             style={{
               display: "flex",
@@ -210,7 +224,6 @@ export default function ProductDetail() {
               justifyContent: "center",
             }}
           >
-            {/* Country badge */}
             <div
               style={{
                 display: "inline-flex",
@@ -233,10 +246,10 @@ export default function ProductDetail() {
             <h1
               style={{
                 fontFamily: "Boogaloo, cursive",
-                fontSize: "3rem",
+                fontSize: isMobile ? "2.2rem" : "3rem",
                 color: "#2C1810",
                 lineHeight: 1.1,
-                marginBottom: "1rem",
+                marginBottom: "0.75rem",
               }}
             >
               {product.name}
@@ -246,20 +259,19 @@ export default function ProductDetail() {
               style={{
                 color: "#757575",
                 lineHeight: 1.7,
-                fontSize: "1rem",
-                marginBottom: "1.5rem",
+                fontSize: "0.95rem",
+                marginBottom: "1.25rem",
               }}
             >
               {product.description}
             </p>
 
-            {/* Stock */}
             <div
               style={{
                 display: "flex",
                 alignItems: "center",
                 gap: "8px",
-                marginBottom: "1.5rem",
+                marginBottom: "1.25rem",
               }}
             >
               <Package size={16} style={{ color: "#4CAF50" }} />
@@ -276,21 +288,20 @@ export default function ProductDetail() {
               </span>
             </div>
 
-            {/* Price */}
             <div
               style={{
-                fontSize: "2.5rem",
+                fontSize: isMobile ? "2rem" : "2.5rem",
                 fontWeight: 800,
                 color: "#FF6B35",
-                marginBottom: "1.5rem",
+                marginBottom: "1.25rem",
                 fontFamily: "Boogaloo, cursive",
               }}
             >
               ${product.price}
             </div>
 
-            {/* Quantity selector */}
-            <div style={{ marginBottom: "1.5rem" }}>
+            {/* Quantity */}
+            <div style={{ marginBottom: "1.25rem" }}>
               <p
                 style={{
                   fontWeight: 700,
@@ -301,7 +312,7 @@ export default function ProductDetail() {
               >
                 Quantity
               </p>
-              <div style={{ display: "flex", alignItems: "center", gap: "0" }}>
+              <div style={{ display: "flex", alignItems: "center" }}>
                 <button
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                   style={{
@@ -365,7 +376,7 @@ export default function ProductDetail() {
                 backgroundColor: "#FFF3E0",
                 borderRadius: "12px",
                 padding: "12px 16px",
-                marginBottom: "1.5rem",
+                marginBottom: "1.25rem",
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
@@ -385,7 +396,7 @@ export default function ProductDetail() {
               </span>
             </div>
 
-            {/* Add to cart button */}
+            {/* Add to cart + wishlist */}
             <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
               <button
                 onClick={handleAddToCart}
@@ -399,14 +410,14 @@ export default function ProductDetail() {
                   backgroundColor:
                     product.stock_quantity > 0 ? "#FF6B35" : "#BDBDBD",
                   color: "white",
-                  padding: "16px 32px",
+                  padding: "14px 24px",
                   borderRadius: "14px",
                   border: "none",
                   cursor:
                     product.stock_quantity > 0 ? "pointer" : "not-allowed",
                   fontFamily: "Nunito, sans-serif",
                   fontWeight: 800,
-                  fontSize: "1.1rem",
+                  fontSize: "1rem",
                   transition: "background 0.2s",
                 }}
                 onMouseEnter={(e) => {
@@ -418,14 +429,12 @@ export default function ProductDetail() {
                     e.currentTarget.style.backgroundColor = "#FF6B35";
                 }}
               >
-                <ShoppingCart size={22} />
+                <ShoppingCart size={20} />
                 {product.stock_quantity > 0 ? "Add to Cart" : "Out of Stock"}
               </button>
-
               <WishlistButton productId={product.id} size={22} />
             </div>
 
-            {/* Cash on delivery badge */}
             <div
               style={{
                 marginTop: "1rem",
@@ -449,9 +458,9 @@ export default function ProductDetail() {
             <h2
               style={{
                 fontFamily: "Boogaloo, cursive",
-                fontSize: "2.5rem",
+                fontSize: isMobile ? "1.75rem" : "2.5rem",
                 color: "#2C1810",
-                marginBottom: "1.5rem",
+                marginBottom: "1.25rem",
               }}
             >
               You Might Also Like
@@ -459,8 +468,10 @@ export default function ProductDetail() {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
-                gap: "1.25rem",
+                gridTemplateColumns: isMobile
+                  ? "repeat(2, 1fr)"
+                  : "repeat(3, 1fr)",
+                gap: "1rem",
               }}
             >
               {relatedProducts.map((p) => (
@@ -487,12 +498,12 @@ export default function ProductDetail() {
                 >
                   <div
                     style={{
-                      height: "140px",
+                      height: isMobile ? "100px" : "140px",
                       background: "linear-gradient(135deg, #FFF3E0, #FFF9C4)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      fontSize: "3.5rem",
+                      fontSize: "3rem",
                     }}
                   >
                     {p.image_url ? (
@@ -514,7 +525,7 @@ export default function ProductDetail() {
                       style={{
                         fontWeight: 800,
                         color: "#2C1810",
-                        fontSize: "0.9rem",
+                        fontSize: "0.85rem",
                         marginBottom: "4px",
                       }}
                     >
