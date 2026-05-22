@@ -49,8 +49,6 @@ function OrderRow({ order, onStatusChange }) {
         { headers: { Prefer: "return=representation" } },
       );
 
-      console.log("Patch response:", res.status, res.data);
-
       // Handle completed_orders count + tier reversal
       if (order.user_id) {
         const profileRes = await api.get(

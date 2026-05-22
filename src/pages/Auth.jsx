@@ -40,9 +40,6 @@ export default function Auth() {
           .single()
           .setHeader("Authorization", `Bearer ${data.session.access_token}`);
 
-        console.log("profile:", profile);
-        console.log("error:", profileError);
-
         toast.success("Welcome back! 👋", {
           style: { fontFamily: "Nunito, sans-serif", fontWeight: 700 },
         });

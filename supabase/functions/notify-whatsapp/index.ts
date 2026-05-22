@@ -24,16 +24,12 @@ serve(async (req) => {
       .filter(Boolean)
       .join("\n");
 
-    console.log("raw total_amount:", order.total_amount);
-    console.log("parsed total:", totalStr);
-    console.log("message length:", message.length);
 
     const encodedMessage = encodeURIComponent(message);
     const url = `https://api.callmebot.com/whatsapp.php?phone=${phone}&text=${encodedMessage}&apikey=${apiKey}`;
 
     const res = await fetch(url);
     const resText = await res.text();
-    console.log("CallMeBot:", res.status, resText);
 
     return new Response("ok", { status: 200 });
   } catch (err) {
