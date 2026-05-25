@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import Checkout from "./pages/Checkout";
 import Orders from "./pages/Orders";
 import Wishlist from "./pages/Wishlist";
+import Profile from "./pages/Profile";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminProducts from "./pages/admin/AdminProducts";
@@ -21,7 +22,6 @@ const App = () => {
   const init = useAuthStore((state) => state.init);
   const fetchWishlist = useWishlistStore((state) => state.fetchWishlist);
   const user = useAuthStore((state) => state.user);
-
   const loading = useAuthStore((state) => state.loading);
 
   useEffect(() => {
@@ -79,6 +79,7 @@ const App = () => {
                   <Route path="/checkout" element={<Checkout />} />
                   <Route path="/orders" element={<Orders />} />
                   <Route path="/wishlist" element={<Wishlist />} />
+                  <Route path="/profile" element={<Profile />} />
                 </Routes>
               </>
             </AdminRedirect>

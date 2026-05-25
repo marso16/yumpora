@@ -4,22 +4,25 @@ import {
   ShoppingBag,
   MapPin,
   User,
-  Phone,
   Mail,
   Truck,
   CheckCircle,
   Gift,
 } from "lucide-react";
+import { PhoneInput } from "react-international-phone";
+import "react-international-phone/style.css";
 import toast from "react-hot-toast";
 import api from "../lib/axios";
 import useCartStore from "../store/cartStore";
 import useAuthStore from "../store/authStore";
 import RewardBanner from "../components/RewardBanner";
 import { getTierInfo } from "../lib/rewards";
+import { useWindowSize } from "../hooks/useWindowSize";
 
 export default function Checkout() {
   const { items, getTotalPrice, clearCart } = useCartStore();
   const { user, profile, refreshProfile } = useAuthStore();
+  const { isMobile } = useWindowSize();
   const [loading, setLoading] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderId, setOrderId] = useState(null);
@@ -181,7 +184,7 @@ export default function Checkout() {
             backgroundColor: "#fff",
             borderRadius: "24px",
             border: "1.5px solid #FFE0B2",
-            padding: "3rem 2.5rem",
+            padding: isMobile ? "2rem 1.5rem" : "3rem 2.5rem",
             textAlign: "center",
             maxWidth: "480px",
             width: "100%",
@@ -416,12 +419,12 @@ export default function Checkout() {
       style={{
         minHeight: "100vh",
         backgroundColor: "#FFF9F0",
-        padding: "2rem 1.5rem",
+        padding: isMobile ? "1rem" : "2rem 1.5rem",
       }}
     >
       <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
         {/* Header */}
-        <div style={{ marginBottom: "2rem" }}>
+        <div style={{ marginBottom: "1.5rem" }}>
           <Link
             to="/shop"
             style={{
@@ -436,7 +439,7 @@ export default function Checkout() {
           <h1
             style={{
               fontFamily: "Boogaloo, cursive",
-              fontSize: "3rem",
+              fontSize: isMobile ? "2.2rem" : "3rem",
               color: "#2C1810",
               marginTop: "0.5rem",
             }}
@@ -448,7 +451,7 @@ export default function Checkout() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: window.innerWidth < 768 ? "1fr" : "1fr 400px",
+            gridTemplateColumns: isMobile ? "1fr" : "1fr 400px",
             gap: "2rem",
             alignItems: "flex-start",
           }}
@@ -485,6 +488,7 @@ export default function Checkout() {
                   gap: "1rem",
                 }}
               >
+                {/* Name */}
                 <div style={{ position: "relative" }}>
                   <User size={16} style={iconStyle} />
                   <input
@@ -499,6 +503,8 @@ export default function Checkout() {
                     onBlur={(e) => (e.target.style.borderColor = "#FFE0B2")}
                   />
                 </div>
+
+                {/* Email */}
                 <div style={{ position: "relative" }}>
                   <Mail size={16} style={iconStyle} />
                   <input
@@ -513,18 +519,24 @@ export default function Checkout() {
                     onBlur={(e) => (e.target.style.borderColor = "#FFE0B2")}
                   />
                 </div>
-                <div style={{ position: "relative" }}>
-                  <Phone size={16} style={iconStyle} />
-                  <input
-                    type="tel"
-                    name="phone"
-                    placeholder="Phone number"
+
+                {/* Phone with flag */}
+                <div>
+                  <PhoneInput
+                    defaultCountry="lb"
                     value={form.phone}
-                    onChange={handleChange}
-                    required
-                    style={inputStyle}
-                    onFocus={(e) => (e.target.style.borderColor = "#FF6B35")}
-                    onBlur={(e) => (e.target.style.borderColor = "#FFE0B2")}
+                    onChange={(phone) => setForm((f) => ({ ...f, phone }))}
+                    style={{
+                      "--react-international-phone-border-radius": "11px",
+                      "--react-international-phone-border-color": "#FFE0B2",
+                      "--react-international-phone-background-color": "#FAFAFA",
+                      "--react-international-phone-font-family":
+                        "Nunito, sans-serif",
+                      "--react-international-phone-font-size": "0.9rem",
+                      "--react-international-phone-height": "44px",
+                      "--react-international-phone-text-color": "#2C1810",
+                      width: "100%",
+                    }}
                   />
                 </div>
               </div>
@@ -801,7 +813,9 @@ export default function Checkout() {
           </form>
 
           {/* RIGHT — Order Summary */}
-          <div style={{ position: "sticky", top: "90px" }}>
+          <div
+            style={{ position: isMobile ? "relative" : "sticky", top: "90px" }}
+          >
             <div
               style={{
                 backgroundColor: "#fff",
@@ -933,7 +947,6 @@ export default function Checkout() {
                     ${subtotal.toFixed(2)}
                   </span>
                 </div>
-
                 {rewardApplied && (
                   <div
                     style={{ display: "flex", justifyContent: "space-between" }}
@@ -952,7 +965,6 @@ export default function Checkout() {
                     </span>
                   </div>
                 )}
-
                 <div
                   style={{ display: "flex", justifyContent: "space-between" }}
                 >
